@@ -6,6 +6,11 @@ fn index() -> &'static str {
     "Hello, world!"
 }
 
+#[get("/hello/<name>")]             // <- path
+fn hello(name: &str) -> String {
+    format!("Hello, {}!", name)
+}
+
 #[get("/world")]              // <- route attribute
 fn world() -> &'static str {  // <- request handler
     "hello, world!"
@@ -19,5 +24,5 @@ async fn delay(seconds: u64) -> String {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index,world,delay])
+    rocket::build().mount("/", routes![index,hello,world,delay])
 }
