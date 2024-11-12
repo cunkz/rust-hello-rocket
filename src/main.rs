@@ -1,12 +1,20 @@
 #[macro_use] extern crate rocket;
 use rocket::tokio::time::{sleep, Duration};
 use rocket::serde::{Deserialize, json::Json};
+use rocket::form::Form;
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
-struct Task<'r> {
+struct TaskV1<'r> {
     description: &'r str,
     complete: bool
+}
+
+#[derive(FromForm)]
+struct TaskV2<'r> {
+    description: &'r str,
+    complete: bool,
+    r#type: &'r str,
 }
 
 #[get("/")]
@@ -30,12 +38,17 @@ async fn delay(seconds: u64) -> String {
     format!("Waited for {} seconds", seconds)
 }
 
-#[post("/todo", data = "<task>")]
-fn new_todo(task: Json<Task<'_>>) -> String {
+#[post("/todo/v1", data = "<task>")]
+fn todo_v1(task: Json<TaskV1<'_>>) -> String {
     format!("Description: {}, Complete: {}", task.description, task.complete)
+}
+
+#[post("/todo/v2", data = "<task>")]
+fn todo_v2(task: Form<TaskV2<'_>>) -> String {
+    format!("Description: {}, Complete: {}, Type: {}", task.description, task.complete, task.r#type)
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index,hello,world,delay,new_todo])
+    rocket::build().mount("/", routes![index,hello,world,delay,todo_v1,todo_v2])
 }
